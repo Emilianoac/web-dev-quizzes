@@ -30,13 +30,11 @@
       slug: "node"
     },
   ]
-
 </script>
 
 <template>
   <main class="main-inicio">
-    <div class="container my-5">
-      <h1 class="inicio__titulo mb-4">Web dev quizzes</h1>
+    <div class="container my-4">
       <ul class="inicio__listado-quiz list-unstyled">
         <li v-for="(quiz) in quizzes">
           <RouterLink :to="{ name: 'quiz', params: { quizname: quiz.slug }}">
@@ -53,12 +51,7 @@
 <style lang="scss">
 
   .main-inicio {
-
-    .inicio__titulo {
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
+    
     .inicio__listado-quiz {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -66,8 +59,9 @@
       grid-row-gap: 10px;
 
       li {
-        border: 1px solid black;
+        border: 1px solid var(--color-borde);
         border-radius: 8px;
+        background: var(--color-primario);
         
         a {
           text-decoration: none;
@@ -85,6 +79,34 @@
           }
         }
 
+      }
+    }
+  }
+
+  @media(max-width:575px) {
+
+    .main-inicio {
+
+      .inicio__listado-quiz {
+        grid-template-columns: 1fr 1fr;
+
+        li {
+
+          a {
+
+            img {
+              max-width: 30px;
+            }
+
+            h4 {
+              font-size: 1.1em;
+            }
+
+            p {
+              font-size: 0.9em;
+            }
+          }
+        }
       }
     }
   }
