@@ -1,9 +1,16 @@
 <script setup lang="ts">
+  import Layout from "./layout/Layout.vue"
 </script>
 
 <template>
-  <router-view> </router-view>
+  <Layout>
+    <router-view> </router-view>
+  </Layout>
 </template>
 
-<style scoped>
+<style lang="scss">
+  body {
+    font-size: 16px;
+    background: var(--color-primario);
+  }
 </style>
