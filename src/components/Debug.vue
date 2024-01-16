@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-  import type {Quiz} from "../types/types"
+  import type {Quiz} from "@/types/types"
 
   interface Props {
     data: Quiz

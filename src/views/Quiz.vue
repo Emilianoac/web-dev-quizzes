@@ -3,9 +3,9 @@
   import { onBeforeRouteLeave } from "vue-router"
   import { HighCode } from "vue-highlight-code"
   import "vue-highlight-code/dist/style.css"
-  import type {Quiz} from "../types/types"
+  import type {Quiz} from "@/types/types"
 
-  import vueIcon from "../assets/vue-icon.svg"
+  import vueIcon from "@/assets/vue-icon.svg"
 
   const quiz = reactive<Quiz>({
     isActive: false,
@@ -36,8 +36,8 @@
           explanation:`Lorem ipsum dolor sit amet consectetur adipisicing elit. Necessitatibus dignissimos veniam consequuntur perspiciatis, 
           iusto saepe ipsum cumque ad, sunt asperiores repudiandae illum cupiditate, optio molestias 
           sapiente possimus odio ut rem autem? Ducimus ipsam nesciunt numquam recusandae quisquam at obcaecati officia?`,
+          codeExample: null
         },
-        codeExample: null
       },
       {
         number: 2,
@@ -66,17 +66,17 @@
           watchEffect' se utiliza para ejecutar un efecto secundario automáticamente cada vez 
           que una de sus dependencias reactivas cambia. A diferencia de 'watch', no necesita especificar explícitamente 
           qué propiedades está observando, lo que lo hace útil para reacciones generales a cambios en el estado.
+          `,
+          codeExample: `
+  import { reactive, watchEffect } from 'vue';
+  
+  const state = reactive({ count: 0 });
+  
+  watchEffect(() => console.log(\`The count is \${state.count}\`));
+  
+  // Cada vez que 'state.count' cambie, la función dentro de watchEffect se ejecutará automáticamente.
           `
         },
-        codeExample: `
-import { reactive, watchEffect } from 'vue';
-
-const state = reactive({ count: 0 });
-
-watchEffect(() => console.log(\`The count is \${state.count}\`));
-
-// Cada vez que 'state.count' cambie, la función dentro de watchEffect se ejecutará automáticamente.
-        `
       },
       {
         number: 3,
@@ -104,8 +104,8 @@ watchEffect(() => console.log(\`The count is \${state.count}\`));
           explanation: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Necessitatibus dignissimos veniam consequuntur perspiciatis, 
           iusto saepe ipsum cumque ad, sunt asperiores repudiandae illum cupiditate, optio molestias 
           sapiente possimus odio ut rem autem? Ducimus ipsam nesciunt numquam recusandae quisquam at obcaecati officia?`,
+          codeExample: null
         },
-        codeExample: null
       },
     ],
     currentQuestion: 0,
@@ -288,11 +288,11 @@ watchEffect(() => console.log(\`The count is \${state.count}\`));
                 <div class="">
                   <p class="mt-3 mb-0">{{ question.correctAnswer.explanation }}</p>
                   <HighCode 
-                    v-if="question.codeExample" 
+                    v-if="question.correctAnswer.codeExample" 
                     :textEditor="true"  
                     width="100%"  
                     class="code mt-4" 
-                    :codeValue="question.codeExample" 
+                    :codeValue="question.correctAnswer.codeExample" 
                     theme="dark">
                   </HighCode>
                 </div>

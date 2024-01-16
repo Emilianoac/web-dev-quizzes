@@ -1,8 +1,8 @@
 <script setup lang="ts">
-  import nodeIcon from "../assets/node-icon.svg"
-  import vueIcon from "../assets/vue-icon.svg"
-  import reactIcon from "../assets/react-icon.svg"
-  import angularIcon from "../assets/angular-icon.svg"
+  import nodeIcon from "@/assets/node-icon.svg"
+  import vueIcon from "@/assets/vue-icon.svg"
+  import reactIcon from "@/assets/react-icon.svg"
+  import angularIcon from "@/assets/angular-icon.svg"
 
   const quizzes = [
     {
