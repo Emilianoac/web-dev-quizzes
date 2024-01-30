@@ -1,119 +1,27 @@
 <script lang="ts" setup>
-  import {reactive, watch} from "vue"
-  import { onBeforeRouteLeave } from "vue-router"
+  import {reactive, watch, computed} from "vue"
+  import {useQuizStore} from "@/stores/quiz"
+  import { onBeforeRouteLeave, useRoute } from "vue-router"
+  import type {Question} from "@/types/quiz"
   import { HighCode } from "vue-highlight-code"
   import "vue-highlight-code/dist/style.css"
-  import type {Quiz} from "@/types/types"
 
-  import vueIcon from "@/assets/vue-icon.svg"
+  type Level = 0 | "basico" | "intermedio" | "avanzado"
 
-  const quiz = reactive<Quiz>({
+  const route = useRoute()
+  const quizStore = useQuizStore()
+
+  const quizCategory = computed(() => quizStore.currentCategory) 
+  const currentQuiz = reactive({
+    level: 0 as Level,
     isActive: false,
-    questions: [
-      {
-        number: 1,
-        question: `¿Pregunta 1?`,
-        options: [
-          {
-            number: 1,
-            data: "Opcion 1.",
-          },
-          {
-            number: 2,
-            data: "Opcion 2.",
-          },
-          {
-            number: 3,
-            data: "Opcion 3.",
-          },
-          {
-            number: 4,
-            data: "Opcion 3.",
-          },
-        ],
-        correctAnswer: {
-          number: 1,
-          explanation:`Lorem ipsum dolor sit amet consectetur adipisicing elit. Necessitatibus dignissimos veniam consequuntur perspiciatis, 
-          iusto saepe ipsum cumque ad, sunt asperiores repudiandae illum cupiditate, optio molestias 
-          sapiente possimus odio ut rem autem? Ducimus ipsam nesciunt numquam recusandae quisquam at obcaecati officia?`,
-          codeExample: null
-        },
-      },
-      {
-        number: 2,
-        question: `¿Qué función de Vue 3 se utiliza para ejecutar automáticamente un efecto secundario en respuesta a los cambios reactivos sin necesidad de especificar propiedades concretas?`,
-        options: [
-          {
-            number: 1,
-            data: "watchEffect",
-          },
-          {
-            number: 2,
-            data: "reactive",
-          },
-          {
-            number: 3,
-            data: "computed",
-          },
-          {
-            number: 4,
-            data: "watch",
-          }
-        ],
-        correctAnswer: {
-          number: 1,
-          explanation: `
-          watchEffect' se utiliza para ejecutar un efecto secundario automáticamente cada vez 
-          que una de sus dependencias reactivas cambia. A diferencia de 'watch', no necesita especificar explícitamente 
-          qué propiedades está observando, lo que lo hace útil para reacciones generales a cambios en el estado.
-          `,
-          codeExample: `
-  import { reactive, watchEffect } from 'vue';
-  
-  const state = reactive({ count: 0 });
-  
-  watchEffect(() => console.log(\`The count is \${state.count}\`));
-  
-  // Cada vez que 'state.count' cambie, la función dentro de watchEffect se ejecutará automáticamente.
-          `
-        },
-      },
-      {
-        number: 3,
-        question: `¿Pregunta 3?`,
-        options: [
-          {
-            number: 1,
-            data: "Opcion 1.",
-          },
-          {
-            number: 2,
-            data: "Opcion 2.",
-          },
-          {
-            number: 3,
-            data: "Opcion 3.",
-          },
-          {
-            number: 4,
-            data: "Opcion 3.",
-          },
-        ],
-        correctAnswer: {
-          number: 1,
-          explanation: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Necessitatibus dignissimos veniam consequuntur perspiciatis, 
-          iusto saepe ipsum cumque ad, sunt asperiores repudiandae illum cupiditate, optio molestias 
-          sapiente possimus odio ut rem autem? Ducimus ipsam nesciunt numquam recusandae quisquam at obcaecati officia?`,
-          codeExample: null
-        },
-      },
-    ],
+    questions: [] as Question[],
     currentQuestion: 0,
     answer: {
-      userAnswer: null ,
-      correctAnswer: null,
+      userAnswer: null as number | null ,
+      correctAnswer: null as number | null,
       userAnswerIsCorrect: false,
-      history: []
+      history: [] as number[]
     },
     progressPercentage: 0,
     checkAnswer: function() {
@@ -153,6 +61,11 @@
     }
   })  
 
+  async function getData() {
+    await quizStore.getSingleCategory(route.params.id as string )
+  }
+  getData()
+
   function handleBeforeUnload(event: BeforeUnloadEvent) {
     const message = "Si sales de esta página, perderás tu progreso. ¿Estás seguro de que quieres salir?"
     event.preventDefault()
@@ -160,16 +73,8 @@
     return message
   }
 
-  watch(() => quiz.isActive, (newV) => {
-    if (newV) {
-      window.addEventListener("beforeunload", handleBeforeUnload)
-    } else {
-      window.removeEventListener("beforeunload", handleBeforeUnload)
-    }
-  })
-
   onBeforeRouteLeave((_to , _from, next) => {
-    if (quiz.isActive) {
+    if (currentQuiz.isActive) {
       const answer = window.confirm("Si sales de esta página, perderás tu progreso. ¿Estás seguro de que quieres salir?")
       if (answer) {
         next(true)
@@ -180,89 +85,129 @@
       next(true)
     }
   })
+
+  watch(() => currentQuiz.isActive, (newV) => {
+    if (newV) {
+      window.addEventListener("beforeunload", handleBeforeUnload)
+    } else {
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+    }
+  })
+
+  function setLevel(level: Level ) {
+    if(typeof(level) != "number") {
+      let selectedLevel = quizCategory.value.quizzes[level]
+      if(selectedLevel) {
+        currentQuiz.questions = selectedLevel.questions
+        currentQuiz.isActive = true
+      }
+    }
+  }
 </script>
 
 <template>
-  <!--  <Debug :data="quiz"/> -->  
-  <main class="main-quiz p-3 p-md-5">
+  <Debug :data="currentQuiz"/> 
+  <main class="main-quiz p-3 p-md-5" v-if="quizCategory">
     <div class="container">
       <!--BIENVENIDA QUIZ-->
-      <div class="quiz quiz_bienvenida" v-if="!quiz.isActive && !quiz.answer.history.length">
-        <img class="quiz-icono img-fluid" :src="vueIcon"/>
-        <h1 class="mt-4 fw-bold">Vue 3</h1>
-        <p>Bienvenido al Desafío de Conocimientos sobre vue 3. Este quiz está pensado para evaluar 
-          tu comprensión de los conceptos clave en el desarrollo con Vue 3.
-        </p>   
-        <div class="d-flex justify-content-center">
-          <button class="btn btn-primary" @click="quiz.isActive = true">Comenzar</button>
+      <div v-if="!currentQuiz.isActive && !currentQuiz.answer.history.length">
+        <div class="quiz quiz_bienvenida">
+          <img class="quiz-icono img-fluid" :src="quizCategory.icon"/>
+          <h1 class="mt-4 fw-bold">{{ quizCategory.displayName }}</h1>
+          <p>Bienvenido al Desafío de Conocimientos sobre {{ quizCategory.displayName }}. Este quiz está pensado para evaluar 
+            tu comprensión de los conceptos clave en el desarrollo con {{ quizCategory.displayName }}
+          </p>   
+          <div class="d-flex justify-content-center">
+          </div>
+        </div>
+        <div class="row">
+          <div class="mb-3 mt-3">
+            <label for="" class="form-label d-block text-center">
+              <strong>Selecciona un nivel de dificutad</strong>
+            </label>
+            <select 
+              class="form-select" 
+              v-model="currentQuiz.level"
+              style="max-width: 400px; margin: auto;">
+                <option value="0" selected disabled>Selecciona un nivel</option>
+                <option :value="name" v-for="(_levelData, name) in quizCategory.quizzes">
+                  <strong>{{ name }}</strong>
+                </option>
+            </select>
+          </div>
+        </div>
+        <div class="d-flex">
+          <button  class="btn btn-dark mx-auto px-5" @click="setLevel(currentQuiz.level)">Comenzar</button>
         </div>
       </div>
       <!--QUIZ-->
-      <div class="quiz quiz_pregunta" v-if="quiz.isActive">
-        <div class="d-flex justify-content-end mb-3">
-          <p class="mb-0" v-if="quiz.answer.correctAnswer && quiz.answer.userAnswerIsCorrect"> 
-            <strong class="small">Correcto </strong> 😀
+      <template  v-if="currentQuiz.isActive">
+        <div class="d-flex justify-content-center mb-3">
+          <p class="mb-0"> 
+            <template  v-if="currentQuiz.answer.correctAnswer && currentQuiz.answer.userAnswerIsCorrect">
+              <strong>Correcto </strong> 😀
+            </template>
+            <template v-else-if="currentQuiz.answer.correctAnswer && !currentQuiz.answer.userAnswerIsCorrect">
+              <strong>Incorrecto</strong> 😔
+            </template>
           </p>
-          <p class="mb-0" v-else-if="quiz.answer.correctAnswer && !quiz.answer.userAnswerIsCorrect"> 
-            <strong class="small">Incorrecto</strong> 😔
-          </p>
         </div>
-        <!-- PROGRESO -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <img class="quiz-icono img-fluid" :src="vueIcon"/>
-          <p class="mb-0">{{ quiz.questions[quiz.currentQuestion].number }} / {{ quiz.questions.length }}</p>
+        <div class="quiz quiz_pregunta">
+          <!-- PROGRESO -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <img class="quiz-icono img-fluid" :src="quizCategory.icon"/>
+            <p class="mb-0">{{ currentQuiz.questions[currentQuiz.currentQuestion].number }} / {{ currentQuiz.questions.length }}</p>
+          </div>
+          <div class="quiz__barra-progreso">
+            <span :style="`width: ${currentQuiz.progressPercentage}%`"></span>
+          </div>
+          <!-- PREGUNTA-->
+          <div class="quiz__pregunta mt-4 d-flex">
+            <strong class="me-3">{{ currentQuiz.questions[currentQuiz.currentQuestion].number }}.</strong>
+            <h1 >{{ currentQuiz.questions[currentQuiz.currentQuestion].question }}
+            </h1>
+          </div>
+          <!-- ALTERNATIVAS -->
+          <ul class="quiz__opciones list-unstyled mt-4">
+            <li v-for="(option, i) in currentQuiz.questions[currentQuiz.currentQuestion].options">
+              <input 
+                v-model.number="currentQuiz.answer.userAnswer"
+                :disabled="currentQuiz.answer.correctAnswer ? true : false"
+                :value="option.number" 
+                type="radio" 
+                name="answer" 
+                :id="`answer${i}`"
+              /> 
+              <label :for="`answer${i}`">
+                <div 
+                  class="custom-input-icon"
+                  :class="{
+                    'respuesta-correcta' : currentQuiz.answer.correctAnswer && option.number  == currentQuiz.answer.correctAnswer,
+                    'respuesta-incorrecta' : currentQuiz.answer.correctAnswer && option.number == currentQuiz.answer.userAnswer && option.number  != currentQuiz.answer.correctAnswer
+                  }"
+                >
+                </div>
+                {{ option.data }}
+              </label>
+            </li>
+          </ul>
+          <!-- BOTONES -->
+          <div class="d-flex justify-content-end">
+            <button 
+              :disabled="currentQuiz.answer.correctAnswer ? true : false"
+              class="btn btn-primary" 
+              @click="currentQuiz.checkAnswer">
+                Siguiente Pregunta <i class="fas fa-arrow-right"></i>
+            </button>
+            <button class="btn btn-primary d-none" @click="currentQuiz.setCurrentQuestion()">Siguiente pregunta</button>
+          </div>
         </div>
-        <div class="quiz__barra-progreso">
-          <span :style="`width: ${quiz.progressPercentage}%`"></span>
-        </div>
-        <!-- PREGUNTA-->
-        <div class="quiz__pregunta mt-4 d-flex">
-          <strong class="me-3">{{ quiz.questions[quiz.currentQuestion].number }}.</strong>
-          <h1 >{{ quiz.questions[quiz.currentQuestion].question }}
-          </h1>
-        </div>
-        <!-- ALTERNATIVAS -->
-        <ul class="quiz__opciones list-unstyled mt-4">
-          <li 
-            v-for="(option, i) in quiz.questions[quiz.currentQuestion].options">
-            <input 
-              v-model.number="quiz.answer.userAnswer"
-              :disabled="quiz.answer.correctAnswer ? true : false"
-              :value="option.number" 
-              type="radio" 
-              name="answer" 
-              :id="`answer${i}`"
-            /> 
-            <label :for="`answer${i}`">
-              <div 
-                class="custom-input-icon"
-                :class="{
-                  'respuesta-correcta' : quiz.answer.correctAnswer && option.number  == quiz.answer.correctAnswer,
-                  'respuesta-incorrecta' : quiz.answer.correctAnswer && option.number == quiz.answer.userAnswer && option.number  != quiz.answer.correctAnswer
-                }"
-              >
-              </div>
-              {{ option.number }}
-              {{ option.data }}
-          </label>
-          </li>
-        </ul>
-        <!-- BOTONES -->
-        <div class="d-flex justify-content-end">
-          <button 
-            :disabled="quiz.answer.correctAnswer ? true : false"
-            class="btn btn-primary" 
-            @click="quiz.checkAnswer">
-              Siguiente Pregunta <i class="fas fa-arrow-right"></i>
-          </button>
-          <button class="btn btn-primary d-none" @click="quiz.setCurrentQuestion()">Siguiente pregunta</button>
-        </div>
-      </div>
+      </template>
       <!-- RESULTADOS -->
-      <div class="quiz quiz_resultados" v-if="!quiz.isActive && quiz.answer.history.length">
-        <h2 class="fw-bold mb-4">Resultados</h2>
+      <div class="quiz quiz_resultados" v-if="!currentQuiz.isActive && currentQuiz.answer.history.length">
+        <h2 class="fw-bold mb-4 text-center">Resultados</h2>
         <ul class="resultados__preguntas list-unstyled">
-          <template v-for="(question, i) in quiz.questions">
+          <template v-for="(question, i) in currentQuiz.questions">
             <li>
               <div class="d-flex mb-4"> <strong class="me-2">{{ question.number }}.</strong>  <h5> {{ question.question }}</h5> </div>
               <ul class="list-unstyled">
@@ -270,18 +215,18 @@
                   v-for="(option) in question.options"
                   class="d-flex justify-content-between border border-2 rounded p-2 mt-2 mb-0"
                   :class="{
-                    'border-danger' : option.number == quiz.answer.history[i] && option.number != question.correctAnswer.number,
+                    'border-danger' : option.number == currentQuiz.answer.history[i] && option.number != question.correctAnswer.number,
                     'border-success': option.number == question.correctAnswer.number 
                   }">
                   {{ option.data }}
                   <strong 
                     class="text-success  text-end small" 
                     v-if="option.number == question.correctAnswer.number">
-                      {{option.number == quiz.answer.history[i] ? "Tu respuesta" : "Respuesta correcta" }}
+                      {{option.number == currentQuiz.answer.history[i] ? "Tu respuesta" : "Respuesta correcta" }}
                   </strong>
                   <strong 
                     class="text-danger text-end small" 
-                    v-if="option.number == quiz.answer.history[i] && option.number != question.correctAnswer.number">
+                    v-if="option.number == currentQuiz.answer.history[i] && option.number != question.correctAnswer.number">
                       Tu respuesta
                   </strong>
                 </li>
@@ -325,7 +270,10 @@
       }
     }
 
-    .quiz.quiz_bienvenida {
+    .quiz_bienvenida {
+      border: unset;
+      background: unset;
+      box-shadow: unset;
       max-width: 650px;
       position: relative;
       text-align: center;
@@ -369,7 +317,7 @@
           display: flex;
           align-items: center;
           padding: 0 0.5em;
-          border: 1px solid transparent;
+          border: 1px solid transparent va;
           border-radius: 8px;
           position: relative;
           margin-bottom: 0.5em;
