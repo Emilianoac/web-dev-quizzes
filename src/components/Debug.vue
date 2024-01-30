@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-  import type {Quiz} from "@/types/types"
+  import type {Quiz} from "@/types/quiz"
 
   interface Props {
     data: Quiz
@@ -10,7 +10,7 @@
 
 <template>
   <div class="debug">
-    <pre><code>{{ props.data.answer }}</code></pre>
+    <pre><code>{{ props.data.questions }}</code></pre>
   </div>
 </template>
 
@@ -30,4 +30,4 @@
     box-shadow: 2px 4px 4px 2px rgba(0, 0, 0, 0.258);
     z-index: 99;
   }
-</style>
+</style>@/types/quiz
