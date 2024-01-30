@@ -1,46 +1,26 @@
 <script setup lang="ts">
-  import nodeIcon from "@/assets/node-icon.svg"
-  import vueIcon from "@/assets/vue-icon.svg"
-  import reactIcon from "@/assets/react-icon.svg"
-  import angularIcon from "@/assets/angular-icon.svg"
-
-  const quizzes = [
-    {
-      name: "Vue",
-      description: "A description",
-      icon: vueIcon,
-      slug: "vue"
-    },
-    {
-      name: "React",
-      description: "A description",
-      icon: reactIcon,
-      slug: "react"
-    },
-    {
-      name: "Angular",
-      description: "A description",
-      icon: angularIcon,
-      slug: "angular"
-    },
-    {
-      name: "Node",
-      description: "A description",
-      icon: nodeIcon,
-      slug: "node"
-    },
-  ]
+  import { useQuizStore } from "@/stores/quiz"
+  
+  const quizStore = useQuizStore()
+  const categories = quizStore.quizCategories
+  
+  async function getData() {
+    if(!quizStore.quizCategories.length) {
+      await quizStore.getQuizCategories()
+    }
+  }
+  getData()
 </script>
 
 <template>
   <main class="main-inicio">
     <div class="container my-4">
       <ul class="inicio__listado-quiz list-unstyled">
-        <li v-for="(quiz) in quizzes">
-          <RouterLink :to="{ name: 'quiz', params: { quizname: quiz.slug }}">
+        <li v-for="(quiz) in categories">
+          <RouterLink :to="{ name: 'quiz', params: { id: quiz.id }}">
             <img class="img-fluid mb-4" :src="quiz.icon" />
-            <h4>{{ quiz.name }}</h4>
-            <p>{{ quiz.description }}</p>
+            <h4>{{ quiz.displayName }}</h4>
+            <p class="text-muted small mb-0">{{ quiz.category }}</p>
           </RouterLink>
         </li>
       </ul>
@@ -54,7 +34,7 @@
     
     .inicio__listado-quiz {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
       grid-column-gap: 10px;
       grid-row-gap: 10px;
 
@@ -68,7 +48,7 @@
           color: black;
           padding: 1em;
           display: block;
-
+          text-align: center;
 
           img {
             max-width: 90px;
@@ -76,9 +56,13 @@
           
           h4 {
             font-weight: 700;
+            font-size: 1.2em;
           }
         }
 
+        &:hover {
+          opacity: 0.8;
+        }
       }
     }
   }
@@ -92,7 +76,7 @@
 
         li {
 
-          a {
+          a {            
 
             img {
               max-width: 30px;
@@ -110,4 +94,4 @@
       }
     }
   }
-</style>
+</style>@/type-guards/IsquizCategory@/types/quiz
