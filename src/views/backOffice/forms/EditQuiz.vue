@@ -68,7 +68,7 @@
             if (quizData.basico) {
               quiz.questions = quizData.basico.questions
             } else {
-              quiz.questions.push( new Question(1))
+              quiz.questions.push(new Question(1))
             }
           }
         } else {
@@ -81,20 +81,22 @@
   getData()
 
   async function saveQuiz() {
-    const docRef = doc(db, "quizzes", "vue")
-    const level = `quizzes.${quiz.level}`
-    
-    try {
-      await updateDoc(docRef, {
-        [level] : {
-          name: quiz.name,
-          level: quiz.level,
-          questions: quiz.questions.map(q => serializeQuestion(q))    
-        } 
-      })
-      console.log("Quiz agregado con éxito al array.")
-    } catch (error) {
-      console.error("Error al agregar el quiz:", error)
+    if(categoryID) {
+      const docRef = doc(db, "quizzes", categoryID)
+      const level = `quizzes.${quiz.level}`
+      
+      try {
+        await updateDoc(docRef, {
+          [level] : {
+            name: quiz.name,
+            level: quiz.level,
+            questions: quiz.questions.map(q => serializeQuestion(q))    
+          } 
+        })
+        console.log("Quiz agregado con éxito al array.")
+      } catch (error) {
+        console.error("Error al agregar el quiz:", error)
+      }
     }
   }
 
@@ -109,8 +111,11 @@
   watch(() => quiz.level,(level) => {
     if(level) {
       const quizData = categoryData.quizzes[level]
-      if(quizData) {
+      if(quizData && quizData.questions.length != 0) {
         quiz.questions = quizData.questions
+      } else {
+        console.log('s')
+        quiz.questions = [new Question(1)]
       }
     }
   })
