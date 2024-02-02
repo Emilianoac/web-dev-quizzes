@@ -23,7 +23,7 @@
   async function saveCateory() {
     try {
       const storage = getStorage()
-      const storageRef = firebaseRef(storage, "dan")
+      const storageRef = firebaseRef(storage, "categories")
       const categoryRef = firebaseRef(storageRef, `${ category.id}`)
 
       await uploadBytes(categoryRef, iconBlob )
@@ -56,6 +56,10 @@
       <div class="mb-3">
         <label class="form-label">ID</label>
         <input type="text" class="form-control" v-model="category.id">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Categoria</label>
+        <input type="text" class="form-control" v-model="category.category">
       </div>
       <!-- CODIGO EJEMPLO-->
       <div class="mb-3">
