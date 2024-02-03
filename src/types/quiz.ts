@@ -1,19 +1,17 @@
-export interface Category {
+export interface Quiz {
   id: string;
   category: string,
   displayName: string;
   description: string;
   icon: string;
   quizzes: {
-    basico: Quiz | null,
-    intermedio: Quiz | null;
-    avanzado: Quiz | null
+    basico: Questions | null,
+    intermedio: Questions | null;
+    avanzado: Questions | null
   }
 }
 
-export interface Quiz {
-  name: string;
-  level: "basico" | "intermedio" | "avanzado";
+export interface Questions {
   questions: Question[]
 }
 

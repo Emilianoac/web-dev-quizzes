@@ -1,6 +1,6 @@
-import type {Category} from "@/types/quiz"
+import type {Quiz} from "@/types/quiz"
 
-export function isQuizCategory(object: any): object is Category {
+export function isQuiz(object: any): object is Quiz{
   return (
     typeof object === "object" &&
     "category" in object &&

@@ -1,11 +1,11 @@
 <script lang="ts" setup>
   import { reactive } from "vue"
-  import type { Category } from "@/types/quiz"
+  import type { Quiz } from "@/types/quiz"
   import db from "@/firebase/index"
   import { getStorage, ref as firebaseRef, uploadBytes, getDownloadURL } from "firebase/storage"
   import { setDoc, doc } from "firebase/firestore"
 
-  const category = reactive<Category>({
+  const quiz = reactive<Quiz>({
     id: "",
     category: "",
     displayName: "",
@@ -24,13 +24,13 @@
     try {
       const storage = getStorage()
       const storageRef = firebaseRef(storage, "categories")
-      const categoryRef = firebaseRef(storageRef, `${ category.id}`)
+      const categoryRef = firebaseRef(storageRef, `${ quiz.id}`)
 
       await uploadBytes(categoryRef, iconBlob )
       let url = await getDownloadURL(categoryRef)
-      category.icon = url
+      quiz.icon = url
 
-      await setDoc(doc(db, "quizzes", category.id), category)
+      await setDoc(doc(db, "quizzes", quiz.id), quiz)
       console.log("Categoria creada con éxito.")
     } catch (error) {
       console.error( error)
@@ -51,20 +51,20 @@
       <h1 class="fw-bold mb-4">Nueva Categoria</h1>
       <div class="mb-3">
         <label class="form-label">Nombre</label>
-        <input type="text" class="form-control" v-model="category.displayName">
+        <input type="text" class="form-control" v-model="quiz.displayName">
       </div>
       <div class="mb-3">
         <label class="form-label">ID</label>
-        <input type="text" class="form-control" v-model="category.id">
+        <input type="text" class="form-control" v-model="quiz.id">
       </div>
       <div class="mb-3">
         <label class="form-label">Categoria</label>
-        <input type="text" class="form-control" v-model="category.category">
+        <input type="text" class="form-control" v-model="quiz.category">
       </div>
       <!-- CODIGO EJEMPLO-->
       <div class="mb-3">
         <label class="form-label">Descripción</label>
-        <textarea class="form-control" rows="3" v-model="category.description"></textarea>
+        <textarea class="form-control" rows="3" v-model="quiz.description"></textarea>
       </div>
       <!-- ICONO-->
       <div class="mb-3">
@@ -83,4 +83,4 @@
 </template>
 
 <style>
-</style>@/types/quiz
+</style>

@@ -11,7 +11,7 @@
   const route = useRoute()
   const quizStore = useQuizStore()
 
-  const quizCategory = computed(() => quizStore.currentCategory) 
+  const quizData = computed(() => quizStore.currentCategory) 
   const currentQuiz = reactive({
     level: 0 as Level,
     isActive: false,
@@ -73,6 +73,16 @@
     return message
   }
 
+  function setLevel(level: Level ) {
+    if(typeof(level) != "number") {
+      let selectedLevel = quizData.value.quizzes[level]
+      if(selectedLevel) {
+        currentQuiz.questions = selectedLevel.questions
+        currentQuiz.isActive = true
+      }
+    }
+  }
+
   onBeforeRouteLeave((_to , _from, next) => {
     if (currentQuiz.isActive) {
       const answer = window.confirm("Si sales de esta página, perderás tu progreso. ¿Estás seguro de que quieres salir?")
@@ -93,29 +103,19 @@
       window.removeEventListener("beforeunload", handleBeforeUnload)
     }
   })
-
-  function setLevel(level: Level ) {
-    if(typeof(level) != "number") {
-      let selectedLevel = quizCategory.value.quizzes[level]
-      if(selectedLevel) {
-        currentQuiz.questions = selectedLevel.questions
-        currentQuiz.isActive = true
-      }
-    }
-  }
 </script>
 
 <template>
   <Debug :data="currentQuiz"/> 
-  <main class="main-quiz p-3 p-md-5" v-if="quizCategory">
+  <main class="main-quiz p-3 p-md-5" v-if="quizData">
     <div class="container">
       <!--BIENVENIDA QUIZ-->
       <div v-if="!currentQuiz.isActive && !currentQuiz.answer.history.length">
         <div class="quiz quiz_bienvenida">
-          <img class="quiz-icono img-fluid" :src="quizCategory.icon"/>
-          <h1 class="mt-4 fw-bold">{{ quizCategory.displayName }}</h1>
-          <p>Bienvenido al Desafío de Conocimientos sobre {{ quizCategory.displayName }}. Este quiz está pensado para evaluar 
-            tu comprensión de los conceptos clave en el desarrollo con {{ quizCategory.displayName }}
+          <img class="quiz-icono img-fluid" :src="quizData.icon"/>
+          <h1 class="mt-4 fw-bold">{{ quizData.displayName }}</h1>
+          <p>Bienvenido al Desafío de Conocimientos sobre {{ quizData.displayName }}. Este quiz está pensado para evaluar 
+            tu comprensión de los conceptos clave en el desarrollo con {{ quizData.displayName }}
           </p>   
           <div class="d-flex justify-content-center">
           </div>
@@ -130,7 +130,7 @@
               v-model="currentQuiz.level"
               style="max-width: 400px; margin: auto;">
                 <option value="0" selected disabled>Selecciona un nivel</option>
-                <option :value="name" v-for="(_levelData, name) in quizCategory.quizzes">
+                <option :value="name" v-for="(_levelData, name) in quizData.quizzes">
                   <strong>{{ name }}</strong>
                 </option>
             </select>
@@ -155,7 +155,7 @@
         <div class="quiz quiz_pregunta">
           <!-- PROGRESO -->
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <img class="quiz-icono img-fluid" :src="quizCategory.icon"/>
+            <img class="quiz-icono img-fluid" :src="quizData.icon"/>
             <p class="mb-0">{{ currentQuiz.questions[currentQuiz.currentQuestion].number }} / {{ currentQuiz.questions.length }}</p>
           </div>
           <div class="quiz__barra-progreso">

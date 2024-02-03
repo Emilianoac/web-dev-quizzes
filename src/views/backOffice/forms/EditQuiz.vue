@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-  import { reactive,watch } from "vue"
+  import { reactive,watch, computed } from "vue"
   import { useRoute} from "vue-router"
-  import type { Question as QuestionType, Option, CorrectAnswer, Quiz, Category} from "@/types/quiz"
-  import { isQuizCategory } from "@/type-guards/IsquizCategory"
+  import {useQuizStore} from "@/stores/quiz"
+  import type { Question as QuestionType, Option, CorrectAnswer} from "@/types/quiz"
   import db from "@/firebase/index"
-  import { doc, updateDoc, getDoc } from "firebase/firestore"
+  import { doc, updateDoc} from "firebase/firestore"
 
-  import { HighCode } from "vue-highlight-code"
-  import "vue-highlight-code/dist/style.css"
+  type Level = "basico" | "avanzado" | "intermedio"
 
+  const quizStore = useQuizStore()
   const route = useRoute()
 
   class Question implements QuestionType {
@@ -31,66 +31,36 @@
     }
   }
 
-  const categoryID = route.params.id as string | undefined
-  const categoryData = reactive<Category>({
-    displayName: "",
-    category: "",
-    id: "",
-    icon: "",
-    description: "",
-    quizzes: {
-      basico: null ,
-      intermedio: null,
-      avanzado: null,
-    }
-  })
-  const quiz = reactive<Quiz>({
-    name: "",
-    level: "basico",
-    questions: [] as QuestionType[],
+  const quizId = route.params.id as string | undefined
+  const quiz = reactive({
+    data: computed(() => quizStore.currentCategory),
+    currentLevel: {
+      level: "basico" as Level,
+      questions: [] as QuestionType[],
+    },
   })
 
   async function getData() {
-    if(categoryID) {
-      try {
-        const docRef = doc(db, "quizzes", categoryID)
-        const docSnap = await getDoc(docRef)
-        
-        if (docSnap.exists() && isQuizCategory(docSnap.data())) {
-          const docData = docSnap.data() as Category
-  
-          quiz.name = docData.displayName
-  
-          const quizData = docData.quizzes
-          if (quizData) {
-            categoryData.quizzes = quizData
-  
-            if (quizData.basico) {
-              quiz.questions = quizData.basico.questions
-            } else {
-              quiz.questions.push(new Question(1))
-            }
-          }
-        } else {
-          throw new Error("Falló la verificación de datos")
-        }
-      } catch(err) {
+    if(quizId) {
+      await quizStore.getSingleCategory(quizId)
+      if (quiz.data.quizzes.basico) {
+        quiz.currentLevel.questions = quiz.data.quizzes.basico.questions
+      } else {
+        quiz.currentLevel.questions.push(new Question(1))
       }
     }
   }
   getData()
 
-  async function saveQuiz() {
-    if(categoryID) {
-      const docRef = doc(db, "quizzes", categoryID)
-      const level = `quizzes.${quiz.level}`
+  async function updateQuiz() {
+    if(quizId) {
+      const docRef = doc(db, "quizzes", quizId)
+      const level = `quizzes.${quiz.currentLevel.level}`
       
       try {
-        await updateDoc(docRef, {
-          [level] : {
-            name: quiz.name,
-            level: quiz.level,
-            questions: quiz.questions.map(q => serializeQuestion(q))    
+        await updateDoc(docRef, { 
+          [level] : { 
+            questions: quiz.currentLevel.questions.map(q => serializeQuestion(q))
           } 
         })
         console.log("Quiz agregado con éxito al array.")
@@ -101,21 +71,20 @@
   }
 
   function addNewQuestion(number: number): void {
-    quiz.questions.push(new  Question(number))
+    quiz.currentLevel.questions.push(new  Question(number))
   }
 
   function serializeQuestion(question: Question) {
     return { ...question }
   }
 
-  watch(() => quiz.level,(level) => {
+  watch(() => quiz.currentLevel.level,(level) => {
     if(level) {
-      const quizData = categoryData.quizzes[level]
+      const quizData = quiz.data.quizzes[level]
       if(quizData && quizData.questions.length != 0) {
-        quiz.questions = quizData.questions
+        quiz.currentLevel.questions = quizData.questions
       } else {
-        console.log('s')
-        quiz.questions = [new Question(1)]
+        quiz.currentLevel.questions = [new Question(1)]
       }
     }
   })
@@ -123,25 +92,33 @@
 
 <template>
   <div class="container my-4">
-    <form style="max-width: 600px; margin: auto;" v-if="quiz.questions.length">
-      <h1 class="fw-bold mb-4">Editar quiz {{ quiz.name }}</h1>
+    <form style="max-width: 600px; margin: auto;" v-if="quiz.currentLevel.questions.length">
+      <!-- NOMBRE QUIZ -->
+      <div class="d-flex align-items-center mb-4">
+        <h1 class="fw-bold">Editar quiz {{ quiz.data.displayName }}</h1>
+        <img class="img-fluid ms-2" style="max-width: 40px;" :src="quiz.data.icon"/>
+      </div>
+      <!-- NIVELES -->
       <div class="mb-3">
         <label for="" class="form-label">Nivel </label>
-        <select class="form-select" v-model="quiz.level">
+        <select class="form-select" v-model="quiz.currentLevel.level">
           <option value="" disabled selected>Seleccionar Nivel</option>
           <option value="basico">Basico</option>
           <option value="intermedio">Intermedio</option>
           <option value="avanzado">Avanzado</option>
         </select>
       </div>
-      <div class="mb-3" v-for="(question) in quiz.questions">
+      <!-- PREGUNTAS -->
+      <div class="mb-3" v-for="(question) in quiz.currentLevel.questions">
         <details>
-          <summary class="py-4"><strong>Pregunta {{ question.number }}</strong></summary>
+          <!-- NUMERO PREGUNTA -->
+          <summary style="user-select: none;" class="py-4 pb-0"><strong>Pregunta {{ question.number }}</strong></summary>
+          <!-- PREGUNTA -->
           <div class="mt-4">
             <label class="form-label">Pregunta</label>
             <input class="form-control"  type="text" v-model="question.question">
           </div>
-  
+          <!-- OPCIONES -->
           <div class="mt-4" v-for="(option) in question.options">
             <label class="form-label small" for="">Opción {{ option.number }}</label>
             <input class="form-control" v-model="option.data" type="text">
@@ -161,25 +138,20 @@
             <label for="" class="form-label">Ejemplo Codigo</label>
             <textarea class="form-control" rows="3" v-model="question.correctAnswer.codeExample"></textarea>
           </div>
-          <HighCode 
-            :textEditor="true"  
-            width="100%"  
-            class="code mt-4" 
-            :codeValue="question.correctAnswer.codeExample" 
-            theme="dark">
-          </HighCode>
         </details>
         <hr class="my-4">
       </div>
       <div class="d-flex justify-content-end mb-4 ">
-        <button @click.prevent="addNewQuestion(quiz.questions.length + 1)" class="btn btn-dark">Añadir pregunta <i class="fas fa-plus"></i></button>
+        <button @click.prevent="addNewQuestion(quiz.currentLevel.questions.length + 1)" class="btn btn-dark">
+          Añadir pregunta <i class="fas fa-plus"></i>
+        </button>
       </div>
       <div class="d-flex justify-content-end">
-        <button @click.prevent="saveQuiz" type="submit" class="btn btn-primary">GuardarCambios</button>
+        <button @click.prevent="updateQuiz" type="submit" class="btn btn-primary">Guardar Cambios</button>
       </div>
     </form>
   </div>
 </template>
 
 <style>
-</style>@/type-guards/IsquizCategory@/types/quiz
+</style>

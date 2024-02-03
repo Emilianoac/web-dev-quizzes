@@ -94,4 +94,4 @@
       }
     }
   }
-</style>@/type-guards/IsquizCategory@/types/quiz
+</style>
