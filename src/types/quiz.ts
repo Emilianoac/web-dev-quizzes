@@ -1,8 +1,7 @@
 export interface Quiz {
   id: string;
-  category: string,
+  category: string;
   displayName: string;
-  description: string;
   icon: string;
   quizzes: {
     basico: Questions | null,
