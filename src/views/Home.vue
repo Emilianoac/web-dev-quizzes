@@ -2,11 +2,11 @@
   import { useQuizStore } from "@/stores/quiz"
   
   const quizStore = useQuizStore()
-  const categories = quizStore.quizCategories
+  const quizzes = quizStore.quizzes
   
   async function getData() {
-    if(!quizStore.quizCategories.length) {
-      await quizStore.getQuizCategories()
+    if(!quizStore.quizzes.length) {
+      await quizStore.getQuizzes()
     }
   }
   getData()
@@ -16,7 +16,7 @@
   <main class="main-inicio">
     <div class="container my-4">
       <ul class="inicio__listado-quiz list-unstyled">
-        <li v-for="(quiz) in categories">
+        <li v-for="(quiz) in quizzes">
           <RouterLink :to="{ name: 'quiz', params: { id: quiz.id }}">
             <img class="img-fluid mb-4" :src="quiz.icon" />
             <h4>{{ quiz.displayName }}</h4>

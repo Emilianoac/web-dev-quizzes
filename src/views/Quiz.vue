@@ -11,7 +11,7 @@
   const route = useRoute()
   const quizStore = useQuizStore()
 
-  const quizData = computed(() => quizStore.currentCategory) 
+  const quizData = computed(() => quizStore.currentQuiz) 
   const currentQuiz = reactive({
     level: 0 as Level,
     isActive: false,
@@ -62,7 +62,7 @@
   })  
 
   async function getData() {
-    await quizStore.getSingleCategory(route.params.id as string )
+    await quizStore.getSingleQuiz(route.params.id as string )
   }
   getData()
 

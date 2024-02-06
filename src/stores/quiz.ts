@@ -7,18 +7,18 @@ import type {Quiz} from "@/types/quiz"
 export const useQuizStore = defineStore("quiz", {
   state: () => {
     return { 
-      quizCategories: [] as Quiz[],
-      currentCategory: {} as Quiz
+      quizzes: [] as Quiz[],
+      currentQuiz: {} as Quiz
     }
   },
   actions: {
-    async getQuizCategories() {
+    async getQuizzes() {
       try {
         const querySnapshot = await getDocs(collection(db, "quizzes"))
         querySnapshot.forEach((doc) => {
           let data = {... doc.data(), id: doc.id} 
           if (isQuiz(data)) {
-            this.quizCategories.push(data)
+            this.quizzes.push(data)
           } else {
             throw new Error("Falló la verificación de datos")
           }
@@ -28,14 +28,14 @@ export const useQuizStore = defineStore("quiz", {
       }
     },
 
-    async getSingleCategory(id: string) {
+    async getSingleQuiz(id: string) {
       try {
         const docRef = doc(db, "quizzes", id)
         const docSnap = await getDoc(docRef)
 
         if (docSnap.exists() && isQuiz(docSnap.data())) {
           const docData = docSnap.data() as Quiz
-          this.currentCategory = docData
+          this.currentQuiz = docData
         } else {
           throw new Error("Falló la verificación de datos")
         }
