@@ -30,9 +30,9 @@
               Admin
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><RouterLink class="dropdown-item" :to="{name: 'nueva categoria'}">Nueva Categoria</RouterLink></li>
+              <li><RouterLink class="dropdown-item" :to="{name: 'nuevo quiz'}">Nuevo Quizz</RouterLink></li>
               <li><hr class="dropdown-divider"></li>
-              <li><RouterLink class="dropdown-item" :to="{name: 'categorias'}">Ver Categorias</RouterLink></li>
+              <li><RouterLink class="dropdown-item" :to="{name: 'quizzes'}">Ver Quizzes</RouterLink></li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item text-danger" href="#">Salir</a></li>
             </ul>

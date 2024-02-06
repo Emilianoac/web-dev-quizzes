@@ -16,14 +16,14 @@ const routes: Array<RouteRecordRaw> = [
 
   //BACKOFFICE
   {
-    path: "/backoffice/nueva-categoria",
-    name: "nueva categoria",
-    component: () => import("@/views/backOffice/forms/NewCategory.vue")
+    path: "/backoffice/nuevo-quiz",
+    name: "nuevo quiz",
+    component: () => import("@/views/backOffice/forms/NewQuiz.vue")
   },
   {
-    path: "/backoffice/categorias",
-    name: "categorias",
-    component: () => import("@/views/backOffice/Categories.vue")
+    path: "/backoffice/quizzes",
+    name: "quizzes",
+    component: () => import("@/views/backOffice/Quizzes.vue")
   },
   {
     path: "/backoffice/editar-quizz/:id",
